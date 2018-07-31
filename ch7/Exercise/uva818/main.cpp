@@ -4,12 +4,12 @@
 
 using namespace std;
 
-int n, edges[16][16], min_times, k, kase=0, vis[16];
+int n, edges[16][16], min_times, k, kase=0, vis[16], l;
 bool loop_flag;
 
 void init(){
     memset(edges, 0, sizeof(edges));
-    min_times = INT_MAX;
+    min_times = 200;
 }
 
 bool in(){
@@ -18,51 +18,65 @@ bool in(){
         return false;
 
     int a, b;
-    for(int i=0;i < n;++i){
+    cin >> a >> b;
+    while(a != -1 || b != -1){
+        ++edges[a-1][b-1];
+        ++edges[b-1][a-1];
         cin >> a >> b;
-        edges[a][b] = edges[b][a] = 1;
     }
     return true;
 }
 
 //判断有没有节点的度大于2
 bool judge_degree(){
-    for(int i=1;i <= n;++i){
+    for(int i=0;i < n;++i){
+        //确保i不是被拿下来的珠子
+        if(k & 1 << i) continue;
         int d = 0;
-        for(int j=1;j <= n;++j){
+        for(int j=0;j < n;++j){
             if(i == j) continue;
             if(k & 1 << j) continue;
             if(edges[i][j])
-                ++d;
+                d += edges[i][j];
         }
         if(d > 2)
             return false;
     }
+
+    return true;
 }
 
-bool DFS(int i, int target){
-    for(int j=1;j != )
+bool DFS(int i, int fa){
+    vis[i] = 1;
+    for(int v=0;v < n;++v){
+        if(edges[i][v]){
+            if(v == fa || (k & (1 << v))) continue;
+            if(vis[v]) return true;
+            if(DFS(v,i)) return true;
+        }
+    }
+    return false;
 }
 
-bool judge_loop(int i){
-
-}
 
 int main() {
     while(true){
-        ++kase;
         init();
         if(!in())
             break;
 
-        for(int k=0;k < (1 << n);++k){
+        for(k=0;k < (1 << n);++k){
+            l = 0;
             if(!judge_degree())
                 continue;
             //判断是否成环
+            memset(vis, 0, sizeof(vis));
             loop_flag = false;
-            for(int i=1;i <= n ;++i){
-                memset(vis, 0, sizeof(vis));
-                if(!judge_loop(i)){
+            for(int i=0;i < n ;++i){
+                if(k & 1 << i) continue;
+                if(vis[i]) continue;
+                ++l;
+                if(DFS(i,-1)){
                     loop_flag = true;
                     break;
                 }
@@ -72,10 +86,12 @@ int main() {
             for(int i=0;i < n ;++i)
                 if(k & (1 << i))
                     ++total;
+            if(total + 1 < l)
+                continue;
             if(total < min_times)
                 min_times = total;
         }
-        printf("Set %d: Minimum links to open is %d\n", kase++, min_times);
+        printf("Set %d: Minimum links to open is %d\n", ++kase, min_times);
     }
     return 0;
 }
