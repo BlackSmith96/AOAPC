@@ -1,10 +1,10 @@
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <cstdlib>
 
 using namespace std;
 
-int n, edges[16][16], min_times, k, kase=0, vis[16], l;
+int n, edges[16][16], min_times, k, kase=0, vis[16], l, temp_edges[16][16];
 bool loop_flag;
 
 void init(){
@@ -46,18 +46,46 @@ bool judge_degree(){
     return true;
 }
 
-bool DFS(int i, int fa){
+bool DFS(int i){
     vis[i] = 1;
     for(int v=0;v < n;++v){
-        if(edges[i][v]){
-            if(v == fa || (k & (1 << v))) continue;
+        if(temp_edges[i][v]){
+            if(k & (1 << v)) continue;
             if(vis[v]) return true;
-            if(DFS(v,i)) return true;
+            --temp_edges[i][v]; --temp_edges[v][i];
+            if(DFS(v)) return true;
         }
     }
     return false;
 }
 
+bool DFS2(int i, int fa){
+    vis[i] = 1;
+    for(int v=0;v < n;++v){
+        if(edges[i][v]){
+            if(v == fa) continue;
+            if(k & (1 << v)) continue;
+            if(vis[v]) return true;
+            if(DFS(v)) return true;
+        }
+    }
+    return false;
+}
+
+bool has_circle(int i){
+    if(k & 1 << i) return false;
+    if(vis[i]) return false;
+    ++l;
+    return DFS2(i,-1);
+}
+
+int open_count(){
+    int count = 0;
+    for(int i=0;i < n;++i)
+        if(k & (1 << i))
+            ++count;
+    return count;
+}
 
 int main() {
     while(true){
@@ -71,25 +99,19 @@ int main() {
                 continue;
             //判断是否成环
             memset(vis, 0, sizeof(vis));
+            memcpy(temp_edges, edges, sizeof(edges));
             loop_flag = false;
             for(int i=0;i < n ;++i){
-                if(k & 1 << i) continue;
-                if(vis[i]) continue;
-                ++l;
-                if(DFS(i,-1)){
+                if(has_circle(i)){
                     loop_flag = true;
                     break;
                 }
             }
-            if(loop_flag) continue;
-            int total = 0;
-            for(int i=0;i < n ;++i)
-                if(k & (1 << i))
-                    ++total;
-            if(total + 1 < l)
-                continue;
-            if(total < min_times)
-                min_times = total;
+            int opens = open_count();
+            if(loop_flag || (opens + 1 < l)) continue;
+
+            if(opens < min_times)
+                min_times = opens;
         }
         printf("Set %d: Minimum links to open is %d\n", ++kase, min_times);
     }
