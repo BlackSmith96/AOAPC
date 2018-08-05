@@ -47,3 +47,8 @@ ch7/Exercise/uva690/cmake-build-debug/CMakeFiles/Makefile2
 ch7/Exercise/uva690/cmake-build-debug/Makefile
 ch7/Exercise/uva690/cmake-build-debug/uva690
 ch7/Exercise/uva818/cmake-build-debug/uva818
+ch7/Exercise/uva12113/cmake-build-debug/CMakeFiles/3.9.6/CompilerIdCXX/CMakeCXXCompilerId.cpp
+ch7/Exercise/uva12113/cmake-build-debug/CMakeFiles/Makefile2
+ch7/Exercise/uva12113/cmake-build-debug/Makefile
+ch7/Exercise/uva12113/cmake-build-debug/uva12113
+ch7/Exercise/uva211/闭运算先膨胀后腐蚀。它具有填充物体内细小空洞，连接邻近物体和平滑边界的作用。开运算先腐蚀再膨胀，可以去掉目标外的孤立点。.md
