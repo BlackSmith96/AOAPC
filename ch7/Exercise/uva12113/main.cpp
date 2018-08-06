@@ -60,7 +60,10 @@ bool iter(int step,char m[5][15]){
         vis[se] = 1;
         t[y-1][2 * x + 1] = t[y-1][2 * x + 3] = t[y+1][2 * x + 1] = t[y+1][2 * x + 3] = '_';
         t[y+1][2 * x] = t[y][2 * x] = t[y][2 * x + 4] = t[y+1][2 * x + 4] = '|';
-        t[y][2 * x + 1] = t[y][2 * x + 1] = t[y][2 * x + 3] = t[y+1][2 * x + 2] = ' ';
+        t[y][2 * x + 1] = t[y][2 * x + 2] = t[y][2 * x + 3] = t[y+1][2 * x + 2] = ' ';
+        //if(step == 3 && vis[0] == 1 && vis)
+        //    debug(t);
+
         if(iter(step+1,t))
             return true;
         vis[se] = 0;
