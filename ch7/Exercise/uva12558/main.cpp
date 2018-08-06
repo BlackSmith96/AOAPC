@@ -1,51 +1,78 @@
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <algorithm>
-#include <set>
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<algorithm>
+#include<cassert>
+#include<set>
 using namespace std;
 
-const int maxn = 10000;
+typedef long long LL;
+int a, b, maxd, k, t;
+set<LL> s;
 
-set<long long> s;
-int d;
-long long ans[maxn], v[maxn];
-
-long long gcd(long long a, long long b){
-    return b?gcd(b,a%b):a;
+LL gcd(LL a, LL b) {
+    return b == 0 ? a : gcd(b, a%b);
 }
 
-bool better(int cd){
-    for(int i=0;i < cd;++i)
-        return
+// 返回满足1/c <= a/b的最小c
+inline int get_first(LL a, LL b) {
+    return b/a+1;
 }
 
-bool dfs(int depth,int begin,long long a,long long b){
-    if(depth == maxn){
-        if(b * begin == a && ){
+const int maxn = 100 + 5;
+
+LL v[maxn], ans[maxn];
+
+// 如果当前解v比目前最优解ans更优，更新ans
+bool better(int d) {
+    for(int i = d; i >= 0; i--) if(v[i] != ans[i]) {
+            return ans[i] == -1 || v[i] < ans[i];
         }
+    return false;
+}
+
+// 当前深度为d，分母不能小于from，分数之和恰好为aa/bb
+bool dfs(int d, int from, LL aa, LL bb) {
+    if(d == maxd) {
+        if(bb % aa || s.count(bb/aa) != 0) return false; // aa/bb必须是埃及分数
+        v[d] = bb/aa;
+        if(better(d)) memcpy(ans, v, sizeof(LL) * (d+1));
+        return true;
     }
+    bool ok = false;
+    from = max(from, get_first(aa, bb)); // 枚举的起点
+    for(int i = from; ; i++) {
+        if(s.count(i) != 0) continue;
+        // 剪枝：如果剩下的maxd+1-d个分数全部都是1/i，加起来仍然不超过aa/bb，则无解
+        if(bb * (maxd+1-d) <= i * aa) break;
+        v[d] = i;
+        // 计算aa/bb - 1/i，设结果为a2/b2
+        LL b2 = bb*i;
+        LL a2 = aa*i - bb;
+        LL g = gcd(a2, b2); // 以便约分
+        if(dfs(d+1, i+1, a2/g, b2/g)) ok = true;
+    }
+    return ok;
 }
 
 int main() {
-    int kase, times = 0;
-    cin >> kase;
-    while(kase--){
-        long long a,b,t;
-        int k;
-
+    int kase = 0,times;
+    cin >> times;
+    while(times--) {
+        int ok = 0;
+        s.clear();
         cin >> a >> b >> k;
-        while(k--) {cin >> t; s.insert(t);}
-        for(d = 0;;++d){
-            memset(ans,-1, sizeof(ans));
-            if(dfs(0,b/a+1,a,b)) break;
+        while(k--){cin >> t; s.insert(t);}
+        for(maxd = 1; maxd <= 100; maxd++) {
+            memset(ans, -1, sizeof(ans));
+            if(dfs(0, get_first(a, b), a, b)) { ok = 1; break; }
         }
-        printf("Case %d: %lld/%lld=",++times,a,b);
-        for(int i=0;i<=d;++i){
-            if(i) printf("+");
-            printf("1/%lld",ans[i]);
-        }
-        printf("\n");
+        cout << "Case " << ++kase << ": ";
+        if(ok) {
+            cout << a << "/" << b << "=";
+            for(int i = 0; i < maxd; i++) cout << "1/" << ans[i] << "+";
+            cout << "1/" << ans[maxd] << "\n";
+        } else cout << "No solution.\n";
     }
     return 0;
 }
