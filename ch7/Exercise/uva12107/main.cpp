@@ -4,14 +4,20 @@
 #include <algorithm>
 using namespace std;
 
-char a1[3],b1[3],c1[3],a2[3],b2[3],c2[3],s1;
-int a,b,c;
+const char chs[11] = {'*','0','1','2','3','4','5','6','7','8','9'};
+char expression[15];
+int maxd,l,cnt,kase = 0;
 
 bool in(){
-    cin >> a1;
-    if(a1[0] == '0') return false;
-    cin >> b1 >> c1 >> a2 >> b2 >> c2;
+    gets(expression);
+    if(expression[0] == '0') {return false;}
     return true;
+}
+
+bool smaller(char a , char b){
+    if(a == '*') return true;
+    if(b == '*') return false;
+    return (b-a);
 }
 
 bool equal(int num1, int num2, char * snum ){
@@ -25,41 +31,86 @@ bool equal(int num1, int num2, char * snum ){
 }
 
 //sta = 1代表a,sta = 2代表b，sta = 3代表c
-bool iter(char * s,int i, int sta){
-    if(sta == 3)
-        return equal(a, b, s+i);
+void iter(char * s,int i, int sta, int n1, int n2){
+    if(cnt >= 2)
+        return ;
+    if(sta == 3){
+        if(equal(n1, n2, s+i))
+            ++cnt;
+        return;
+    }
     if(s[i] == ' ')
-        return iter(s,i+1,sta+1);
+        return iter(s,i+1,sta+1,n1,n2);
     if(s[i] == '*'){
-        int ok = 0,k;
+        int k,a,b;
         if(i != 0 && s[i-1] != ' ') k = 0;
-        for(;k < 10;++k){
+        else k = 1;
+        for(;k < 10 && cnt < 2;++k){
+            a = n1; b= n2;
             if(sta == 1)
                 a = a * 10 + k;
             else
                 b = b * 10 + k;
-            if(iter(s,i+1,sta)){
-                ok = 1;
-                break;
-            }
+            iter(s,i+1,sta,a,b);
         }
-        if(ok)  return true;
     }
     else{
         if(sta == 1){
-            a = a * 10 + s[i] - '0';
+            n1 = n1 * 10 + s[i] - '0';
         }
         else{
-            b = b * 10 + s[i] - '0';
+            n2 = n2 * 10 + s[i] - '0';
         }
-        return iter(s,i+1,sta);
+        iter(s,i+1,sta,n1,n2);
     }
+}
+
+bool changedigit(char exp[15], int i, int nums){
+    if(nums == 0){
+        cnt = 0;
+        iter(exp,0,1,0,0);
+        if(cnt != 1)
+            return false;
+        else{
+            printf("Case %d: %s\n",++kase,exp);
+            return true;
+        }
+    }
+    if((l-i) < nums) return false;
+    if(exp[i] == ' ') return changedigit(exp,i+1,nums);
+    int ok = 0;
+    char s[15];
+    int j;
+    for(j = 0;j < 11 && smaller(chs[j],exp[i]);++j){
+        if(i > 0 && chs[j] == '0' && exp[i-1] == ' ') continue;
+        strcpy(s,exp);
+        if(chs[j] == exp[i]) continue;
+        s[i] = chs[j];
+        if(changedigit(s,i+1,nums-1)){
+            return true;
+        }
+    }
+    if(changedigit(exp,i+1,nums))
+        return true;
+    for(;j < 11;++j){
+        if(chs[j] == exp[i]) continue;
+        strcpy(s,exp);
+        s[i] = chs[j];
+        if(changedigit(s,i+1,nums-1))
+            return true;
+    }
+    return false;
 }
 
 int main() {
     while(in()){
         //Your code
-        cout << a1 << b1 << endl;
+        l = strlen(expression);
+        int ok = 0;
+        for(maxd=0;;++maxd){
+            if(changedigit(expression,0,maxd))
+                break;
+        }
     }
     return 0;
 }
