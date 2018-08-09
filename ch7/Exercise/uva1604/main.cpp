@@ -5,8 +5,8 @@
 using namespace std;
 
 typedef int State[9];
-const int maxstate = 100000;
-const int hashsize = 1000003;
+const int maxstate = 9000000;
+const int hashsize = 2000003;
 int myhead[hashsize], mynext[hashsize];
 int empty_x,empty_y;
 State st[maxstate];
@@ -20,11 +20,11 @@ int goal[9]; //-1->E 0 -> W 1->R 2-> B
 //   4   R W B
 //   5   B W R
 //   6   B R W
-const int left[7] = {0,6,3,2,5,1};  //往左滚
-const int right[7] = {0,6,3,2,5,1};
+const int left[7] = {0,6,3,2,5,4,1};  //往左滚
+const int right[7] = {0,6,3,2,5,4,1};
 const int forward[7] = {0,4,5,6,1,2,3};
 const int back[7] = {0,4,5,6,1,2,3};
-const int next_state[4][7] = {{0,6,3,2,5,1},{0,6,3,2,5,1},{0,4,5,6,1,2,3},{0,4,5,6,1,2,3}};
+const int next_state[4][7] = {{0,6,3,2,5,4,1},{0,6,3,2,5,4,1},{0,4,5,6,1,2,3},{0,4,5,6,1,2,3}};
 const int dr[4] = {0,0,1,-1};
 const int dc[4] = {1,-1,0,0};
 
@@ -75,8 +75,11 @@ bool try_to_inseart(int s){
 
 bool judge(State s){
     for(int i=0;i < 9;++i){
-        if(goal[i] == 0 && s[i] != 0){return false;}
-        else if(goal[i] != (s[i] + 1) / 2 ) return false;
+        if(goal[i] == -1){
+            if(s[i] != 0)
+                return false;
+        }
+        else if(goal[i] != (s[i] - 1) / 2 ) return false;
     }
     return true;
 }
@@ -87,6 +90,7 @@ int bfs(){
     int front = 1,rear = 2;
     for(;front  < rear;front++){
         State& s = st[front];
+        //debug(s);
         if(judge(s)) return front;
         // search empty block
         int z, r, c, nr, nc,nz;
@@ -102,11 +106,12 @@ int bfs(){
             t[z] = next_state[d][s[nz]];
             t[nz] = 0;
             dist[rear] = dist[front] + 1;
+            if(dist[rear] > 30) continue;
             //debug(t);
             if(try_to_inseart(rear)) ++rear;
         }
     }
-    return 0;
+    return -1;
 }
 
 void debug(State s){
@@ -124,10 +129,11 @@ void debug(State s){
 int main() {
     while(in()){
         int ans = bfs();
+        //debug(st[ans]);
         if(ans >= 0)
             printf("%d\n",dist[ans]);
         else
-            printf("-1");
+            printf("-1\n");
     }
     return 0;
 }
