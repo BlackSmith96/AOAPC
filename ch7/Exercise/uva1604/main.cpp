@@ -6,9 +6,11 @@ using namespace std;
 
 typedef int State[9];
 const int maxstate = 100000;
+const int hashsize = 1000003;
+int myhead[hashsize], mynext[hashsize];
 int empty_x,empty_y;
 State st[maxstate];
-int dis[maxstate];
+int dist[maxstate];
 int goal[9]; //-1->E 0 -> W 1->R 2-> B
 
 //定义状态
@@ -18,13 +20,13 @@ int goal[9]; //-1->E 0 -> W 1->R 2-> B
 //   4   R W B
 //   5   B W R
 //   6   B R W
-const int left[7] = {0,6,3,2,5,1};
+const int left[7] = {0,6,3,2,5,1};  //往左滚
 const int right[7] = {0,6,3,2,5,1};
 const int forward[7] = {0,4,5,6,1,2,3};
 const int back[7] = {0,4,5,6,1,2,3};
-const int next[4][7] = {{0,6,3,2,5,1},{0,6,3,2,5,1},{0,4,5,6,1,2,3},{0,4,5,6,1,2,3}};
-const int dr[4] = {0,0,-1,1};
-const int dc[4] = {-1,1,0,0};
+const int next_state[4][7] = {{0,6,3,2,5,1},{0,6,3,2,5,1},{0,4,5,6,1,2,3},{0,4,5,6,1,2,3}};
+const int dr[4] = {0,0,1,-1};
+const int dc[4] = {1,-1,0,0};
 
 bool in(){
     cin >> empty_x >> empty_y;
@@ -43,14 +45,33 @@ bool in(){
     }
     //init
     for(int i=0;i < 9;++i)
-        st[0][i] = 1;
-    st[0][3*empty_y+empty_x-4] = 0;
-    dis[0] = 0;
+        st[1][i] = 1;
+    st[1][3*empty_y+empty_x-4] = 0;
+    dist[1] = 0;
     return true;
 }
 
-void init_search_table();
-bool try_to_inseart(State t);
+int myhash(State & s){
+    int v = 0;
+    for(int i=0;i < 9;++i) v = v * 10 + s[i];
+    return v % hashsize;
+}
+
+void init_search_table(){
+    memset(myhead, 0, sizeof(myhead));
+}
+
+bool try_to_inseart(int s){
+    int h = myhash(st[s]);
+    int u = myhead[h];
+    while(u){
+        if(memcmp(st[u],st[s], sizeof(st[s])) == 0) return 0;
+        u = mynext[u];
+    }
+    mynext[s] = myhead[h];
+    myhead[h] = s;
+    return 1;
+}
 
 bool judge(State s){
     for(int i=0;i < 9;++i){
@@ -60,34 +81,51 @@ bool judge(State s){
     return true;
 }
 
+void debug(State s);
 int bfs(){
     init_search_table();
-    int front = 0,rear = 1;
+    int front = 1,rear = 2;
     for(;front  < rear;front++){
-        if(judge(st[front])) return 1;
+        State& s = st[front];
+        if(judge(s)) return front;
         // search empty block
-        int i, r, c, nr, nc;
-        for(i=0;i < 9;++i){if(st[front][i] == 0) break;}
-        r = i / 3;  c = i % 3;
-        for(i=0;i < 4;++i){
-            nr = r + dr[i];
-            nc = c + dc[i];
-            if(nr < 0 || nr > 3 || nc < 0 || nc > 3) continue;
-            State t;
-            memcpy(t,st[front], sizeof(State));
-            t[3*r+c] = 0;
-            t[3*nr+nc] = next[i][t[3*nr+nc]];
-            if(try_to_inseart(t)) ++rear;
+        int z, r, c, nr, nc,nz;
+        for(z=0;z < 9;++z){if(s[z] == 0) break;}
+        r = z / 3;  c = z % 3;
+        for(int d=0;d < 4;++d){
+            nr = r + dr[d];
+            nc = c + dc[d];
+            nz = 3 * nr + nc;
+            if(nr < 0 || nr >= 3 || nc < 0 || nc >= 3) continue;
+            State& t = st[rear];
+            memcpy(&t,st[front], sizeof(State));
+            t[z] = next_state[d][s[nz]];
+            t[nz] = 0;
+            dist[rear] = dist[front] + 1;
+            //debug(t);
+            if(try_to_inseart(rear)) ++rear;
         }
     }
     return 0;
+}
+
+void debug(State s){
+    cout << "****";
+    for(int i=0;i < 9;++i){
+        if(i % 3 == 0) cout << endl;
+        if(s[i] == 1 || s[i] == 2) cout << "W ";
+        if(s[i] == 3 || s[i] == 4) cout << "R ";
+        if(s[i] == 5 || s[i] == 6) cout << "B ";
+        if(s[i] == 0) cout << "E ";
+    }
+    cout << endl << "****" << endl;
 }
 
 int main() {
     while(in()){
         int ans = bfs();
         if(ans >= 0)
-            printf("%d\n",ans);
+            printf("%d\n",dist[ans]);
         else
             printf("-1");
     }
